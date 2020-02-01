@@ -1,8 +1,8 @@
 from setuptools import setup, find_packages
 
 setup(
-  name = 'SimpleNs',
-  description = 'SimpleNs',
+  name = 'Namespace',
+  description = 'Namespace',
   version = '1.0.0',
   license = 'MIT',
   author = 'Jakub21',
