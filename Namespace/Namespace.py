@@ -1,23 +1,9 @@
+SPACES = 2
 
 class Namespace:
   '''Converts dictionaries to namespaces'''
   def __init__(self, **data):
     self.__dict__.update(data)
-
-  @classmethod
-  def fromDict(cls, input_dict):
-    obj = cls.__new__(cls)
-    obj.__dict__.update(input_dict)
-    return obj
-
-  @classmethod
-  def recursive(cls, **data):
-    obj = cls.__new__(cls)
-    for k, v in data.items():
-      if type(v) is dict:
-        v = cls.recursive(v)
-      obj.__dict__.update({k:v})
-    return obj
 
   # Implement dictionary interface methods
 
@@ -36,56 +22,101 @@ class Namespace:
   def values(self):
     return self.__dict__.values()
 
-  def __str__(self, indent=0, className='Namespace', onlyHeadObjs=[]):
-    indentWidth = 2
-    self.__onlyHeadObjs__ = onlyHeadObjs + [self]
-    self.__repr_indent__ = indent
+  def __repr__(self, *args, **kwargs):
+    return self.toStr(*args, **kwargs)
+
+  def __str__(self, *args, **kwargs):
+    return self.toStr(*args, **kwargs)
+
+  def toStr(self, className=None, maxDepth=-1, depth=0, extendedObjs=[]):
+    extendedObjs += [self]
+    if className is None: className = self.__strGetObjectHead(self)
     result = className + ' {\n'
-    def convertPrimitive(x):
-      if type(x) == str:
-        x = '"'+x+'"'
-      return str(x)
-    def convertDict(x):
-      return Namespace(**x).__str__(self.__repr_indent__+1, 'dict',
-        self.__onlyHeadObjs__)
-    def convertList(x):
-      if len(x) == 0: return '[]'
-      else:
-        self.__repr_indent__ += 1
-        r = '['
-        for xx in x:
-          r += '\n' + ' '*indentWidth*(self.__repr_indent__+1) + str(choice(xx))
-        r += '\n'+' '*indentWidth*self.__repr_indent__+']\n'
-        self.__repr_indent__ -= 1
-        return r
-    def convertObject(x):
-      if x in self.__onlyHeadObjs__: return self.getObjectHead(x)
-      self.__onlyHeadObjs__ += [x]
-      return Namespace(**x.__dict__).__str__(self.__repr_indent__+1,
-        self.getObjectHead(x), self.__onlyHeadObjs__)
-    def convertClass(x):
-      return f'<class {x.__name__}>'
-    def choice(x):
-      if type(x) in [int, str, float, bool]:
-        return convertPrimitive(x)
-      elif type(x) == dict:
-        return convertDict(x)
-      elif type(x) == list:
-        return convertList(x)
-      elif 'object at' in str(x):
-        return convertObject(x)
-      elif type(x) == type(list): # class (not instance)
-        return convertClass(x)
-    for k, v in self.__dict__.items():
-      if k in ['__repr_indent__', '__onlyHeadObjs__']: continue
-      result += ' '*indentWidth*(self.__repr_indent__+1) + f'{k}: {choice(v)}\n'
-    result += ' '*indentWidth*self.__repr_indent__ + '}'
-    del self.__repr_indent__
-    del self.__onlyHeadObjs__
+
+    for item in self.__dict__.values():
+      if isinstance(item.__class__, type) or type(item) == dict:
+        extendedObjs += [item]
+
+    indent = ' ' * SPACES * depth
+    for key, val in self.__dict__.items():
+      try: val = self.__strConvert(val, depth, maxDepth, extendedObjs)
+      except Exception as e:
+        print(' > ', end=key)
+        if depth == 0: print('\n[PARTIAL RESULT]', result)
+        raise e.with_traceback(None)
+      result += f'{indent}{" "*SPACES}{key}: {val}\n'
+    result += indent + '}'
     return result
 
-  def __repr__(self, *args, **kwargs):
-    return self.__str__(*args, **kwargs)
+  @classmethod
+  def __strConvert(cls, item, depth, maxDepth, extendedObjs):
+    # Primitive types
+    if type(item) in [str, int, float, bool, type(None)]: return cls.__strCvtPrimitive(item)
+    # Class
+    elif isinstance(item, type): return cls.__strCvtClass(item)
+    # Dictionary
+    elif type(item) is dict: return cls.__strCvtDict(item, depth, maxDepth, extendedObjs)
+    # Iterables
+    elif type(item) is list:
+      return cls.__strCvtIterable(item, depth, maxDepth, 'list', '[]', extendedObjs)
+    elif type(item) is tuple:
+      return cls.__strCvtIterable(item, depth, maxDepth, 'tuple', '()', extendedObjs)
+    elif type(item) is set:
+      return cls.__strCvtIterable(item, depth, maxDepth, 'set', '{}', extendedObjs)
+    # Object
+    elif isinstance(item.__class__, type):
+      return cls.__strCvtObject(item, depth, maxDepth, extendedObjs)
+
+  @staticmethod
+  def __strCvtPrimitive(item):
+    if type(item) == str: item = f'"{item}"'
+    return str(item)
+
+  @staticmethod
+  def __strCvtClass(item):
+    return f'<class {item.__name__}>'
+
+  @staticmethod
+  def __strCvtDict(item, depth, maxDepth, extendedObjs):
+    length = len(item)
+    # head only
+    if not length: return 'dict (empty) { }'
+    if depth >= maxDepth and maxDepth != -1: return f'dict ({length})' + ' { ... }'
+    # head + content
+    return Namespace(**item).toStr('dict', maxDepth, depth+1, extendedObjs)
+
+  @classmethod
+  def __strCvtIterable(cls, item, depth, maxDepth, name, limiters, extendedObjs):
+    open, close = limiters
+    length = len(item)
+    # head only
+    if not length: return f'{name} (empty) {open} {close}'
+    if depth >= maxDepth and maxDepth != -1: return f'{name} ({length}) {open} ... {close}'
+    # head + content
+    result = f'{name} ({length}) {open}'
+    indent = ' ' * SPACES * (depth + 1)
+    elmIndent = ' ' * SPACES * (depth + 2)
+    for elm in item:
+      elm = cls.__strConvert(elm, depth+1, maxDepth, extendedObjs)
+      extendedObjs += [elm]
+      result += f'\n{elmIndent}- {elm},'
+    return f'{result}\n{indent}{close}'
+
+  @classmethod
+  def __strCvtObject(cls, item, depth, maxDepth, extendedObjs):
+    head = cls.__strGetObjectHead(item)
+    # content unaccessible
+    try: item.__dict__
+    except AttributeError:
+      return head + ' (inaccessible)'
+    # head only
+    if (depth >= maxDepth and maxDepth != -1) or item in extendedObjs:
+      return head + f' {{ {len(item.__dict__)} attributes }}'
+    if len(item.__dict__) == 0:
+      return head + ' (empty)'
+    # head + content
+    ns = Namespace(**item.__dict__)
+    return ns.toStr(head, maxDepth, depth+1, extendedObjs)
 
   @staticmethod
   def __strGetObjectHead(item):
