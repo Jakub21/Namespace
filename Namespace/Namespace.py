@@ -88,12 +88,11 @@ class Namespace:
     return self.__str__(*args, **kwargs)
 
   @staticmethod
-  def getObjectHead(obj):
-    name = obj.__class__.__name__
-    hexId = '0x' + hex(id(obj))[2:].upper()
-    return f'<{name} at {hexId}>'
+  def __strGetObjectHead(item):
+    return f'<{item.__class__.__name__} at {"0x" + hex(id(item))[2:].upper()}>'
 
   @classmethod
-  def getObjectStructure(cls, obj):
-    ns = Namespace(**obj.__dict__)
-    return ns.__str__(0, cls.getObjectHead(obj), [obj])
+  def getObjectStructure(cls, item, maxDepth=-1):
+    try: item.__dict__
+    except AttributeError: raise AttributeError('Can not access content of this object')
+    return Namespace(**item.__dict__).toStr(cls.__strGetObjectHead(item), maxDepth, 0, [item])
