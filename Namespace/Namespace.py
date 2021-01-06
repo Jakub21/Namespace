@@ -5,7 +5,7 @@ class Namespace:
   def __init__(self, **data):
     self.__dict__.update(data)
 
-  # Implement dictionary interface methods
+  # Dictionary interface methods
 
   def __getitem__(self, key):
     return self.__dict__[key]
@@ -22,11 +22,15 @@ class Namespace:
   def values(self):
     return self.__dict__.values()
 
+  # Default string methods
+
   def __repr__(self, *args, **kwargs):
     return self.toStr(*args, **kwargs)
 
   def __str__(self, *args, **kwargs):
     return self.toStr(*args, **kwargs)
+
+  # String methods
 
   def toStr(self, className=None, maxDepth=-1, depth=0, extendedObjs=[]):
     extendedObjs += [self]
@@ -47,6 +51,14 @@ class Namespace:
       result += f'{indent}{" "*SPACES}{key}: {val}\n'
     result += indent + '}'
     return result
+
+  @classmethod
+  def getObjectStructure(cls, item, maxDepth=-1):
+    try: item.__dict__
+    except AttributeError: raise AttributeError('Can not access content of this object')
+    return Namespace(**item.__dict__).toStr(cls.__strGetObjectHead(item), maxDepth, 0, [item])
+
+  # String helper methods
 
   @classmethod
   def __strConvert(cls, item, depth, maxDepth, extendedObjs):
@@ -121,9 +133,3 @@ class Namespace:
   @staticmethod
   def __strGetObjectHead(item):
     return f'<{item.__class__.__name__} at {"0x" + hex(id(item))[2:].upper()}>'
-
-  @classmethod
-  def getObjectStructure(cls, item, maxDepth=-1):
-    try: item.__dict__
-    except AttributeError: raise AttributeError('Can not access content of this object')
-    return Namespace(**item.__dict__).toStr(cls.__strGetObjectHead(item), maxDepth, 0, [item])
