@@ -1,9 +1,33 @@
+import yaml
+
 SPACES = 2
 
 class Namespace:
   '''Converts dictionaries to namespaces'''
   def __init__(self, **data):
     self.__dict__.update(data)
+
+  @classmethod
+  def yaml(cls, file):
+    return Namespace.recursive(yaml.load(file, Loader=yaml.FullLoader))
+
+  @classmethod
+  def recursive(cls, data):
+    def _get(x):
+      try:
+        x.keys(), x.values() # has dict interface
+        return cls.recursive(x)
+      except:
+        return x
+    obj = cls.__new__(cls)
+    for (key, val) in data.items():
+      if type(val) in [list, tuple, set]:
+        obj.__dict__[key] = []
+        for entry in val:
+          obj.__dict__[key] += [_get(entry)]
+      else:
+        obj.__dict__[key] = _get(val)
+    return obj
 
   # Dictionary interface methods
 
