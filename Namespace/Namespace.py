@@ -37,10 +37,6 @@ class Namespace:
     if className is None: className = self.__strGetObjectHead(self)
     result = className + ' {\n'
 
-    for item in self.__dict__.values():
-      if isinstance(item.__class__, type) or type(item) == dict:
-        extendedObjs += [item]
-
     indent = ' ' * SPACES * depth
     for key, val in self.__dict__.items():
       try: val = self.__strConvert(val, depth, maxDepth, extendedObjs)
@@ -95,6 +91,7 @@ class Namespace:
     if not length: return 'dict (empty) { }'
     if depth >= maxDepth and maxDepth != -1: return f'dict ({length})' + ' { ... }'
     # head + content
+    extendedObjs += [item]
     return Namespace(**item).toStr('dict', maxDepth, depth+1, extendedObjs)
 
   @classmethod
@@ -128,6 +125,7 @@ class Namespace:
       return head + ' (empty)'
     # head + content
     ns = Namespace(**item.__dict__)
+    extendedObjs += [item]
     return ns.toStr(head, maxDepth, depth+1, extendedObjs)
 
   @staticmethod
