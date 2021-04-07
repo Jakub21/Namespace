@@ -1,3 +1,4 @@
+import json
 import yaml
 
 SPACES = 2
@@ -8,8 +9,20 @@ class Namespace:
     self.__dict__.update(data)
 
   @classmethod
-  def yaml(cls, file):
-    return Namespace.recursive(yaml.load(file, Loader=yaml.FullLoader))
+  def json(cls, data):
+    return Namespace.recursive(json.loads(data))
+
+  @classmethod
+  def jsonFile(cls, file):
+    return Namespace.recursive(json.load(file))
+
+  @classmethod
+  def yaml(cls, data):
+    return Namespace.recursive(yaml.load(data, Loader=yaml.FullLoader))
+
+  @classmethod
+  def yamlFile(cls, file):
+    return cls.yaml(file)
 
   @classmethod
   def recursive(cls, data):
@@ -28,6 +41,22 @@ class Namespace:
       else:
         obj.__dict__[key] = _get(val)
     return obj
+
+  # Dumping methods
+
+  def toJson(self):
+    return json.dumps(self.__dict__)
+
+  def toJsonFile(self, target):
+    return json.dump(self.__dict__, target)
+
+  def toYaml(self):
+    return yaml.dump(self.__dict__)
+
+  def toYamlFile(self, target):
+    data = self.toYaml()
+    stream = open(target, 'w')
+    return stream.write(data)
 
   # Dictionary interface methods
 
