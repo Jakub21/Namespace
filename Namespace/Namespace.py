@@ -48,7 +48,7 @@ class Namespace:
     return json.dumps(self.__dict__)
 
   def toJsonFile(self, target):
-    return json.dump(self.__dict__, target)
+    return json.dump(self.__dict__, open(target, 'w'))
 
   def toYaml(self):
     return yaml.dump(self.__dict__)
