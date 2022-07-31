@@ -66,7 +66,6 @@ class Namespace:
     return data
 
   def toJson(self):
-    print(self.serialize())
     return json.dumps(self.serialize())
 
   def toJsonFile(self, target):
