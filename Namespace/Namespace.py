@@ -75,6 +75,9 @@ class Namespace:
   def values(self):
     return self.__dict__.values()
 
+  def update(self, other):
+    return self.__dict__.update(other)
+
   # Default string methods
 
   def __repr__(self, *args, **kwargs):
