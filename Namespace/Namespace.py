@@ -44,19 +44,39 @@ class Namespace:
 
   # Dumping methods
 
+  def serialize(self):
+    data = {}
+    for (key, val) in self.items():
+      try:
+        val = val.serialize()
+      except AttributeError:
+        other = []
+        if type(val) is not str:
+          try:
+            for entry in val:
+              try:
+                entry = entry.serialize()
+              except AttributeError:
+                pass
+              other.append(entry)
+            val = other
+          except TypeError: # not iterable
+            pass
+      data[key] = val
+    return data
+
   def toJson(self):
-    return json.dumps(self.__dict__)
+    print(self.serialize())
+    return json.dumps(self.serialize())
 
   def toJsonFile(self, target):
-    return json.dump(self.__dict__, open(target, 'w'))
+    return open(target, 'w').write(self.toJson())
 
   def toYaml(self):
-    return yaml.dump(self.__dict__)
+    return yaml.dump(self.serialize())
 
   def toYamlFile(self, target):
-    data = self.toYaml()
-    stream = open(target, 'w')
-    return stream.write(data)
+    return open(target, 'w').write(self.toYaml())
 
   # Dictionary interface methods
 
