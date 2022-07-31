@@ -14,7 +14,7 @@ class Namespace:
 
   @classmethod
   def jsonFile(cls, file):
-    return Namespace.recursive(json.load(file))
+    return Namespace.recursive(json.loads(open(file, 'r').read()))
 
   @classmethod
   def yaml(cls, data):
@@ -22,7 +22,7 @@ class Namespace:
 
   @classmethod
   def yamlFile(cls, file):
-    return cls.yaml(file)
+    return cls.yaml(open(file, 'r').read())
 
   @classmethod
   def recursive(cls, data):
