@@ -4,6 +4,7 @@ Namespace package
 """
 
 from types import NoneType, FunctionType, MethodType, LambdaType
+from datetime import datetime, date, time, timedelta
 from re import match
 
 TYPES = {
@@ -58,6 +59,7 @@ class PrettyDict(dict):
       (int, float, bool, NoneType): lambda val: str(val),
       (str,): lambda val: f'"{val}"',
       (type,): lambda val: f'<class {val.__name__}>',
+      (datetime, date, time, timedelta): lambda val: f'<{type(val).__name__} {val}>',
       (dict,):
         lambda val: self._convert_dict(val, indent, _depth + 1, _visited_containers),
       TYPES["iterables"]:
