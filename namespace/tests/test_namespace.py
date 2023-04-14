@@ -11,17 +11,17 @@ from .fixtures import Animal, fruits, get_circular, serial_value, json_string, y
 
 
 def test_constructor():
-  ns = Namespace(**fruits)
+  ns = Namespace(fruits)
   assert isinstance(ns, Namespace)
   assert not isinstance(ns.banana, Namespace) and isinstance(ns.banana, dict)
   assert not isinstance(ns.banana["colors"][0], Namespace) and isinstance(ns.banana["colors"][0], dict)
 
 
-def test_dict_factory_with_dict():
-  ns = Namespace.Dict(fruits)
-  assert isinstance(ns, Namespace)
-  assert not isinstance(ns.banana, Namespace) and isinstance(ns.banana, dict)
-  assert not isinstance(ns.banana["colors"][0], Namespace) and isinstance(ns.banana["colors"][0], dict)
+def test_kwargs_factory():
+  ns = Namespace.Kwargs(apples = 5, bananas = 4, berries = 32)
+  assert ns.apples == 5
+  assert ns["bananas"] == 4
+  assert ns.get("berries") == 32
 
 
 def test_recursive_factory_with_dict():
@@ -40,7 +40,7 @@ def test_recursive_factory_with_circular_dict():
 
 
 def test_getters_are_synonymous():
-  ns = Namespace(**fruits)
+  ns = Namespace(fruits)
   with_index = ns["banana"]
   with_getattr = getattr(ns, "banana")
   with_get = ns.get("banana")
@@ -53,13 +53,13 @@ def test_getters_are_synonymous():
 
 def test_setters_are_synonymous():
   value = "UniqueValue"
-  ns_index = Namespace(**fruits)
+  ns_index = Namespace(fruits)
   ns_index["unique"] = value
 
-  ns_setattr = Namespace(**fruits)
+  ns_setattr = Namespace(fruits)
   setattr(ns_setattr, "unique", value)
 
-  ns_dot = Namespace(**fruits)
+  ns_dot = Namespace(fruits)
   ns_dot.unique = value
 
   assert ns_index.unique is ns_setattr.unique

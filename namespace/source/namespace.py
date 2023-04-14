@@ -17,22 +17,20 @@ class Namespace(PrettyDict):
   Easy way for pretty printing of complex structures.
   """
 
-  def __init__(self, **data):
+  def __init__(self, data):
     """
-    Creates a namespace with all keyword parameters as elements
+    Creates a namespace from a dictionary.
     """
-    super().__init__(**data)
+    super().__init__(data)
 
   # alternative constructors
 
   @classmethod
-  def Dict(cls, data):
+  def Kwargs(cls, **kwargs):
     """
-    Creates a namespace with all elements from the dictionary
-    (no recursive traversing)
+    Creates a flat namespace with all keyword arguments as elements.
     """
-    obj = cls(**data)
-    return obj
+    return cls(kwargs)
 
   @classmethod
   def Recursive(cls, data, _parents=None):
@@ -61,7 +59,7 @@ class Namespace(PrettyDict):
         properties[key] = type(val)(properties[key])
         continue
       properties[key] = convert(val)
-    obj.__init__(**properties)
+    obj.__init__(properties)
     return obj
 
   # object attribute syntax support

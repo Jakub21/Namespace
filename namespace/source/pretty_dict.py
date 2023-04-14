@@ -15,9 +15,9 @@ ITER_MAX_LINE_WIDTH = 70
 
 class PrettyDict(dict):
 
-  def __init__(self, **data):
+  def __init__(self, data):
     """
-    Creates a namespace with all keyword parameters as elements
+    Creates a pretty dictionary.
     """
     super().__init__(data)
 
@@ -80,7 +80,7 @@ class PrettyDict(dict):
     if not data:
       return 'dict (empty) { }'
     _visited_containers += [data]
-    return self.__class__(**self._get_properties(data)).to_str(indent, _depth, _visited_containers)
+    return self.__class__(self._get_properties(data)).to_str(indent, _depth, _visited_containers)
 
   def _convert_iterable(self, data, indent=2, _depth=0, _visited_containers=None):
     _visited_containers = _visited_containers or []
@@ -122,5 +122,5 @@ class PrettyDict(dict):
   def _convert_object(self, data, indent=2, _depth=0, _visited_containers=None):
     _visited_containers = _visited_containers or []
     _visited_containers += [data]
-    ns = self.__class__(**self._get_properties(data))
+    ns = self.__class__(self._get_properties(data))
     return ns.to_str(indent, _depth + 1, _visited_containers, data.__class__.__name__)
