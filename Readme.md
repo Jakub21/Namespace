@@ -7,12 +7,12 @@ New dict-like data structure.
 
 ## Installation & usage
 
-Newest version can be installed with
+[Newest version]([url](https://pypi.org/project/j-namespace/)) can be installed with
 ```
 pip install j-namespace
 ```
 
-Legacy versions are kept here for backwards compatibility
+[Legacy versions]([url](https://pypi.org/project/javascript-namespaces/)) are kept here for backwards compatibility
 ```
 pip install javascript-namespaces
 ```
